@@ -36,7 +36,7 @@ Public Class EventLogger
         Try
 
             ' Always write to text log file in application directory
-            strLogFile = My.Settings.ProcessLogPath & "BetfredXMLFeedService_Log_File_" & Format(Now, "_yyyy_MM_dd") & ".txt"
+            strLogFile = My.Settings.ProcessLogPath & "BookmakerHorseFeedService_Log_File_" & Format(Now, "_yyyy_MM_dd") & ".txt"
             FileOpen(intFileNumber, strLogFile, OpenMode.Append)
             Dim strDate As String = Format(Now, "yyyy-MM-dd")
             Dim strTimestamp As String = Format(Now, "HH.mm.ss.ffffff")

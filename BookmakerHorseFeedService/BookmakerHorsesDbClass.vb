@@ -37,7 +37,6 @@ Public Class BookmakerHorsesDbClass
             Dim dblPrice As Double
 
             Dim blnFoundEvent As Boolean = False
-            Dim blnFoundBetType As Boolean = False
             Dim blnFoundBet As Boolean = False
 
             ' Loop through each event
@@ -51,7 +50,6 @@ Public Class BookmakerHorsesDbClass
 
                                 ' Reset flags
                                 blnFoundEvent = True
-                                blnFoundBetType = False
                                 blnFoundBet = False
 
                                 ' 
@@ -78,12 +76,6 @@ Public Class BookmakerHorsesDbClass
                                         End Select
                                     End While
                                 End If
-
-                            Case "bettype"
-                                blnFoundBetType = True
-                                blnFoundBet = False
-
-                                ' Nothing required from bettype
 
                             Case "bet"
                                 ' Step through attributes
@@ -114,7 +106,7 @@ Public Class BookmakerHorsesDbClass
                 End Select
 
                 ' Found full set
-                If blnFoundEvent And blnFoundBetType And blnFoundBet Then
+                If blnFoundEvent And blnFoundBet Then
 
                     ' Convert date/time to timestamp
                     Dim iString As String = strEventDate.Substring(0, 4) + "-" + strEventDate.Substring(4, 2) + "-" + strEventDate.Substring(6, 2) + " " + strEventTime.Substring(0, 2) + ":" + strEventTime.Substring(2, 2)
@@ -133,11 +125,14 @@ Public Class BookmakerHorsesDbClass
                     ' Add to list
                     eventList.Add(newEvent)
 
+                    ' Reset flags
+                    blnFoundBet = False
+
                 End If
             Loop
 
         Catch ex As Exception
-            gobjEvent.WriteToEventLog("BookmakerHorseDbClass : Error getting Api data, APINGExcepion msg : " + ex.Message, EventLogEntryType.Error)
+            gobjEvent.WriteToEventLog("BookmakerHorseDbClass : Error reading XML data : " + ex.Message, EventLogEntryType.Error)
             Exit Sub
 
         Finally
@@ -172,9 +167,11 @@ Public Class BookmakerHorsesDbClass
         ' | MySql Select                                                   |
         ' | Get Spocosy betting odds                                       |
         ' \----------------------------------------------------------------/
-        cmdBetOffer.CommandText = "SELECT be.`name`, be.`openDate`, be.`price`, be.`size`, be.`betName`, be.`marketName`, hre.`bookmakerName` AS provider_name, hre.`price` FROM " &
+        cmdBetOffer.CommandText = "SELECT be.`name`, be.`openDate`, be.`price`, be.`size`, be.`betName`, be.`marketName`, hre.`bookmakerName` AS provider_name, hre.`price`, hre.`eventDate`, hre.`meeting` FROM " &
                                                 "betfair_event AS be, horse_racing_event AS hre " &
-                                                "WHERE hre.betName = be.betName AND hre.eventDate = be.openDate and be.marketTypeCode =@marketTypeCode"
+                                                "WHERE hre.betName = be.betName AND date(hre.eventDate) = date(be.openDate) AND be.marketTypeCode =@marketTypeCode " &
+                                                "AND hre.eventDate > current_timestamp"
+
         cmdBetOffer.Parameters.AddWithValue("marketTypeCode", marketTypeCode)
         Try
             cno.Open()
@@ -193,10 +190,24 @@ Public Class BookmakerHorsesDbClass
                     Dim strMarketName As String = drBetOffer.GetString(5)
                     Dim provider_name As String = drBetOffer.GetString(6)
                     Dim odds As Double = drBetOffer.GetDouble(7)
+                    Dim dtEventDate As DateTime = drBetOffer.GetDateTime(8)
+                    Dim strMeeting As String = drBetOffer.GetString(9)
                     Dim blnStore = True
 
                     ' Store the match
                     If blnStore Then
+
+                        ' Convert date/time to string
+                        Dim strEventDateTime As String = dtEventDate.ToString("yyyy-MM-dd HH:mm")
+                        Dim strEventTime As String = strEventDateTime.Substring(11, 5)
+
+                        Dim strMarketTypeCode As String = ""
+                        Select Case marketTypeCode
+                            Case "WIN"
+                                strMarketTypeCode = "Winner"
+                            Case "PLACE"
+                                strMarketTypeCode = "Place"
+                        End Select
 
                         ' Calculate rating 
                         Dim dblRating As Double = odds / dbBetfairPrice * 100
@@ -211,16 +222,16 @@ Public Class BookmakerHorsesDbClass
 
                         'Create instance of Matched Event class
                         newMatched = New MatchedEventClass With {
-                                         .openDate = dtBetfairOpenDate,
+                                         .openDate = dtEventDate,
                                          .eventTypeId = eventTypeId,
                                          .lay = dbBetfairPrice,
                                          .available = dbBetfairSize,
-                                         .details = strBetfairEventName,
+                                         .details = strMeeting + " " + strEventTime,
                                          .bookMaker = strBookmakerImage,
                                          .bookMakerName = provider_name,
                                          .bet = strBetfairBetName,
                                          .exchange = "/images/betfair_exchange.gif",
-                                         .type = marketTypeCode,
+                                         .type = strMarketTypeCode,
                                          .back = odds,
                                          .rating = dblRating
                                         }
