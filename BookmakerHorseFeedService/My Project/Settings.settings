@@ -2,9 +2,6 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="My" GeneratedClassName="MySettings" UseMySettingsClassName="true">
   <Profiles />
   <Settings>
-    <Setting Name="ProcessLogPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)">C:\#myPrograms\BookmakerHorseFeedService\logs\</Value>
-    </Setting>
     <Setting Name="DaysAhead" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">3</Value>
     </Setting>
@@ -18,10 +15,25 @@
 &lt;/SerializableConnectionString&gt;</DesignTimeValue>
       <Value Profile="(Default)">Database=OddsMatching;Data Source=eu-cdbr-azure-north-e.cloudapp.net;User Id=b083cb50265fec;Password=263fb5f7;persistsecurityinfo=True</Value>
     </Setting>
+    <Setting Name="BetfredXMLUrl" Type="System.String" Scope="User">
+      <Value Profile="(Default)">http://xml.betfred.com/horse-racing-uk.xml</Value>
+    </Setting>
+    <Setting Name="ProcessBetfred" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="WilliamHillXMLUrl" Type="System.String" Scope="User">
+      <Value Profile="(Default)">http://cachepricefeeds.williamhill.com/openbet_cdn?action=template&amp;template=getHierarchyByMarketType&amp;classId=2&amp;marketSort=--&amp;filterBIR=N</Value>
+    </Setting>
+    <Setting Name="ProcessWilliamHill" Type="System.String" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ProcessLogPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\#myPrograms\BookmakerHorseFeedService\logs\</Value>
+    </Setting>
     <Setting Name="BookmakerXMLUrl" Type="System.String" Scope="User">
       <Value Profile="(Default)">http://xml.betfred.com/horse-racing-uk.xml</Value>
     </Setting>
-    <Setting Name="ProcessCycleEverySecs" Type="System.Int32" Scope="User">
+    <Setting Name="ProcessCycleEverySecs" Type="System.String" Scope="User">
       <Value Profile="(Default)">120</Value>
     </Setting>
   </Settings>

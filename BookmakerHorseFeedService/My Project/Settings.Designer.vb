@@ -56,18 +56,6 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("C:\#myPrograms\BookmakerHorseFeedService\logs\")>  _
-        Public Property ProcessLogPath() As String
-            Get
-                Return CType(Me("ProcessLogPath"),String)
-            End Get
-            Set
-                Me("ProcessLogPath") = value
-            End Set
-        End Property
-        
-        <Global.System.Configuration.UserScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("3")>  _
         Public Property DaysAhead() As Integer
             Get
@@ -104,6 +92,67 @@ Namespace My
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("http://xml.betfred.com/horse-racing-uk.xml")>  _
+        Public Property BetfredXMLUrl() As String
+            Get
+                Return CType(Me("BetfredXMLUrl"),String)
+            End Get
+            Set
+                Me("BetfredXMLUrl") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("True")>  _
+        Public Property ProcessBetfred() As Boolean
+            Get
+                Return CType(Me("ProcessBetfred"),Boolean)
+            End Get
+            Set
+                Me("ProcessBetfred") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("http://cachepricefeeds.williamhill.com/openbet_cdn?action=template&template=getHi"& _ 
+            "erarchyByMarketType&classId=2&marketSort=--&filterBIR=N")>  _
+        Public Property WilliamHillXMLUrl() As String
+            Get
+                Return CType(Me("WilliamHillXMLUrl"),String)
+            End Get
+            Set
+                Me("WilliamHillXMLUrl") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("True")>  _
+        Public Property ProcessWilliamHill() As String
+            Get
+                Return CType(Me("ProcessWilliamHill"),String)
+            End Get
+            Set
+                Me("ProcessWilliamHill") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\#myPrograms\BookmakerHorseFeedService\logs\")>  _
+        Public Property ProcessLogPath() As String
+            Get
+                Return CType(Me("ProcessLogPath"),String)
+            End Get
+            Set
+                Me("ProcessLogPath") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("http://xml.betfred.com/horse-racing-uk.xml")>  _
         Public Property BookmakerXMLUrl() As String
             Get
                 Return CType(Me("BookmakerXMLUrl"),String)
@@ -116,9 +165,9 @@ Namespace My
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("120")>  _
-        Public Property ProcessCycleEverySecs() As Integer
+        Public Property ProcessCycleEverySecs() As String
             Get
-                Return CType(Me("ProcessCycleEverySecs"),Integer)
+                Return CType(Me("ProcessCycleEverySecs"),String)
             End Get
             Set
                 Me("ProcessCycleEverySecs") = value

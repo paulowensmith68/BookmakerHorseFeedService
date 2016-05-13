@@ -14,7 +14,7 @@ Public Class BookmakerHorsesDbClass
     Private insertCount As Integer = 0
     Private updateCount As Integer = 0
 
-    Public Sub PollBetfredEvents(marketTypeCode As String, bookmakerName As String, blnDeleteAll As Boolean)
+    Public Sub PollBetfredEvents(marketTypeCode As String, bookmakerName As String, bookmakerURL As String)
 
         Dim newEvent As BookmakerHorsesEventClass
 
@@ -23,8 +23,7 @@ Public Class BookmakerHorsesDbClass
             ' Processing event...
             gobjEvent.WriteToEventLog("BookmakerHorseDbClass : Processing events from Betfred XML feed", EventLogEntryType.Information)
 
-            Dim URLString As String = My.Settings.BookmakerXMLUrl
-            Dim reader As XmlTextReader = New XmlTextReader(URLString)
+            Dim reader As XmlTextReader = New XmlTextReader(bookmakerURL)
 
             Dim strBookMakerName As String = bookmakerName
             Dim strMeeting As String = ""
@@ -145,7 +144,148 @@ Public Class BookmakerHorsesDbClass
         ' Write to database
         Dim strResult As String
         gobjEvent.WriteToEventLog("BookmakerHorseDbClass : Starting database update . . . . ", EventLogEntryType.Information)
-        strResult = WriteEventList(bookmakerName, marketTypeCode, blnDeleteAll)
+        strResult = WriteEventList(bookmakerName, marketTypeCode, True)
+        gobjEvent.WriteToEventLog("BookmakerHorseDbClass : Response from Database Update: : " + strResult, EventLogEntryType.Information)
+
+    End Sub
+
+    Public Sub PollWilliamHillEvents(marketTypeCode As String, bookmakerName As String, bookmakerURL As String)
+
+        Dim newEvent As BookmakerHorsesEventClass
+
+        Try
+
+            ' Processing event...
+            gobjEvent.WriteToEventLog("BookmakerHorseDbClass : Processing events from William Hill XML feed", EventLogEntryType.Information)
+
+            Dim reader As XmlTextReader = New XmlTextReader(bookmakerURL)
+
+            Dim strBookMakerName As String = bookmakerName
+            Dim strMeeting As String = ""
+            Dim strRace As String = ""
+            Dim strEventDate As String = ""
+            Dim strEventTime As String = ""
+            Dim strMarketTypeCode As String = marketTypeCode
+            Dim strBetName As String = ""
+            Dim strBetNameShort As String = ""
+            Dim dblPrice As Double
+
+            Dim blnFoundEvent As Boolean = False
+            Dim blnFoundBet As Boolean = False
+
+            ' Loop through each event
+            Do While (reader.Read())
+                Select Case reader.NodeType
+                    Case XmlNodeType.Element 'Display beginning of element.
+
+                        ' Case for each element
+                        Select Case reader.Name
+                            Case "market"
+
+                                ' Reset flags
+                                blnFoundEvent = False
+                                blnFoundBet = False
+
+                                ' Empty
+                                strMeeting = ""
+                                strRace = ""
+                                strEventDate = ""
+                                strEventTime = ""
+                                strBetName = ""
+                                strBetNameShort = ""
+                                dblPrice = 0
+
+                                ' Step through attributes
+                                If reader.HasAttributes Then 'If attributes exist
+                                    While reader.MoveToNextAttribute()
+                                        Select Case reader.Name
+                                            Case "name"
+                                                If reader.Value.EndsWith("- Win") Then
+
+                                                    ' Found event
+                                                    blnFoundEvent = True
+
+                                                    Dim s As String = reader.Value
+                                                    Dim words() As String = s.Split(New Char() {" "c}, StringSplitOptions.RemoveEmptyEntries)
+                                                    strRace = words(1) + " " + words(0)
+                                                    strMeeting = words(1)
+
+                                                End If
+                                            Case "date"
+                                                strEventDate = reader.Value
+                                            Case "time"
+                                                strEventTime = reader.Value
+                                        End Select
+                                    End While
+                                End If
+
+                            Case "participant"
+                                ' Step through attributes
+                                If reader.HasAttributes Then 'If attributes exist
+                                    While reader.MoveToNextAttribute()
+                                        Select Case reader.Name
+                                            Case "name"
+                                                strBetName = reader.Value
+                                            Case "oddsDecimal"
+                                                Dim succeed As Boolean
+                                                succeed = Double.TryParse(reader.Value, dblPrice)
+                                                If succeed Then
+                                                    blnFoundBet = True
+                                                Else
+                                                    blnFoundBet = False
+                                                End If
+                                        End Select
+                                    End While
+                                End If
+
+                        End Select
+
+                    Case XmlNodeType.Text 'Display the text in each element.
+                    Case XmlNodeType.EndElement 'Display end of element.
+
+                End Select
+
+                ' Found full set
+                If blnFoundEvent And blnFoundBet Then
+
+                    ' Convert date/time to timestamp
+                    Dim iString As String = strEventDate + " " + strEventTime.Substring(0, 2) + ":" + strEventTime.Substring(3, 2)
+                    Dim tsEventTimestamp As DateTime = DateTime.ParseExact(iString, "yyyy-MM-dd HH:mm", Nothing)
+
+                    newEvent = New BookmakerHorsesEventClass With {
+                         .bookmakerName = strBookMakerName,
+                         .meeting = strMeeting,
+                         .race = strRace,
+                         .eventTimestamp = tsEventTimestamp,
+                         .marketTypeCode = strMarketTypeCode,
+                         .betName = strBetName,
+                         .price = dblPrice
+                        }
+
+                    ' Add to list
+                    eventList.Add(newEvent)
+
+                    ' Reset flags
+                    blnFoundBet = False
+
+                End If
+            Loop
+
+        Catch ex As Exception
+            gobjEvent.WriteToEventLog("BookmakerHorseDbClass : Error reading XML data : " + ex.Message, EventLogEntryType.Error)
+            Exit Sub
+
+        Finally
+
+        End Try
+
+        ' Log numbers from XML
+        gobjEvent.WriteToEventLog("BookmakerHorseDbClass : Extracted " + eventList.Count.ToString + " horses from Betfred XML feed", EventLogEntryType.Information)
+
+        ' Write to database
+        Dim strResult As String
+        gobjEvent.WriteToEventLog("BookmakerHorseDbClass : Starting database update . . . . ", EventLogEntryType.Information)
+        strResult = WriteEventList(bookmakerName, marketTypeCode, True)
         gobjEvent.WriteToEventLog("BookmakerHorseDbClass : Response from Database Update: : " + strResult, EventLogEntryType.Information)
 
     End Sub
@@ -170,9 +310,17 @@ Public Class BookmakerHorsesDbClass
         cmdBetOffer.CommandText = "SELECT be.`name`, be.`openDate`, be.`price`, be.`size`, be.`betName`, be.`marketName`, hre.`bookmakerName` AS provider_name, hre.`price`, hre.`eventDate`, hre.`meeting` FROM " &
                                                 "betfair_event AS be, horse_racing_event AS hre " &
                                                 "WHERE hre.betName = be.betName AND date(hre.eventDate) = date(be.openDate) AND be.marketTypeCode =@marketTypeCode " &
-                                                "AND hre.eventDate > current_timestamp"
+                                                "AND hre.eventDate >@nowDateTime"
 
         cmdBetOffer.Parameters.AddWithValue("marketTypeCode", marketTypeCode)
+
+        ' Convert UTC Now to GMT (which actually handles BST aswell, confusing!)
+        Dim saveUtcNow As DateTime = DateTime.UtcNow
+        Dim saveGMTNow As DateTime = DateTime.UtcNow
+        Dim gmt As TimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time")
+        saveGMTNow = TimeZoneInfo.ConvertTimeFromUtc(saveUtcNow, gmt)
+        cmdBetOffer.Parameters.AddWithValue("@nowDateTime", saveGMTNow)
+
         Try
             cno.Open()
             cmdBetOffer.Connection = cno

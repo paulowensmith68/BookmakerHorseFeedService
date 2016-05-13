@@ -112,23 +112,33 @@ Public Class Worker
             ' ------------------------------
             ' Horse Racing 
             ' ------------------------------
-            ' MarketTypeCodes applicable : "WIN", "PLACE"
             '
-            If My.Settings.Prcoess_WIN Then
+            If My.Settings.ProcessBetfred Then
 
-                gobjEvent.WriteToEventLog("StartProcess:    *------------------------------------------------------")
-                gobjEvent.WriteToEventLog("StartProcess:    *---  BetfredXMLFeedService - Updating Horse Racing ---")
-                gobjEvent.WriteToEventLog("StartProcess:    *------------------------------------------------------")
-                Dim BookmakerHorsesDbClass1 As New BookmakerHorsesDbClass()
-                BookmakerHorsesDbClass1.PollBetfredEvents("WIN", "Betfred", True)
-                BookmakerHorsesDbClass1 = Nothing
-
-                ' Match new odds
-                Dim BookmakerHorsesDbMatch1 As New BookmakerHorsesDbClass()
-                BookmakerHorsesDbMatch1.MatchHorsesWithBookmakers(7, "WIN")
-                BookmakerHorsesDbMatch1 = Nothing
+                gobjEvent.WriteToEventLog("StartProcess:    *----------------------------------------")
+                gobjEvent.WriteToEventLog("StartProcess:    *---  Betfred - Updating Horse Racing ---")
+                gobjEvent.WriteToEventLog("StartProcess:    *----------------------------------------")
+                Dim BookmakerHorsesDbClass As New BookmakerHorsesDbClass()
+                BookmakerHorsesDbClass.PollBetfredEvents("WIN", "Betfred", My.Settings.BetfredXMLUrl)
+                BookmakerHorsesDbClass = Nothing
 
             End If
+
+            If My.Settings.ProcessWilliamHill Then
+
+                gobjEvent.WriteToEventLog("StartProcess:    *---------------------------------------------")
+                gobjEvent.WriteToEventLog("StartProcess:    *---  William Hill - Updating Horse Racing ---")
+                gobjEvent.WriteToEventLog("StartProcess:    *---------------------------------------------")
+                Dim BookmakerHorsesDbClass As New BookmakerHorsesDbClass()
+                BookmakerHorsesDbClass.PollWilliamHillEvents("WIN", "William Hill", My.Settings.WilliamHillXMLUrl)
+                BookmakerHorsesDbClass = Nothing
+
+            End If
+
+            ' Match new odds
+            Dim BookmakerHorsesDbMatch1 As New BookmakerHorsesDbClass()
+            BookmakerHorsesDbMatch1.MatchHorsesWithBookmakers(7, "WIN")
+            BookmakerHorsesDbMatch1 = Nothing
 
         Catch ex As Exception
 
