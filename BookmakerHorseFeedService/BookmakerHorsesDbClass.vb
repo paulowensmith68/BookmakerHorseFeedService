@@ -111,7 +111,9 @@ Public Class BookmakerHorsesDbClass
                     Dim iString As String = strEventDate.Substring(0, 4) + "-" + strEventDate.Substring(4, 2) + "-" + strEventDate.Substring(6, 2) + " " + strEventTime.Substring(0, 2) + ":" + strEventTime.Substring(2, 2)
                     Dim tsEventTimestamp As DateTime = DateTime.ParseExact(iString, "yyyy-MM-dd HH:mm", Nothing)
 
-                    newEvent = New BookmakerHorsesEventClass With {
+                    If CheckValidCourse(strMeeting) Then
+
+                        newEvent = New BookmakerHorsesEventClass With {
                          .bookmakerName = strBookMakerName,
                          .meeting = strMeeting,
                          .race = strRace,
@@ -121,8 +123,10 @@ Public Class BookmakerHorsesDbClass
                          .price = dblPrice
                         }
 
-                    ' Add to list
-                    eventList.Add(newEvent)
+                        ' Add to list
+                        eventList.Add(newEvent)
+
+                    End If
 
                     ' Reset flags
                     blnFoundBet = False
@@ -252,23 +256,28 @@ Public Class BookmakerHorsesDbClass
                     Dim iString As String = strEventDate + " " + strEventTime.Substring(0, 2) + ":" + strEventTime.Substring(3, 2)
                     Dim tsEventTimestamp As DateTime = DateTime.ParseExact(iString, "yyyy-MM-dd HH:mm", Nothing)
 
-                    newEvent = New BookmakerHorsesEventClass With {
-                         .bookmakerName = strBookMakerName,
-                         .meeting = strMeeting,
-                         .race = strRace,
-                         .eventTimestamp = tsEventTimestamp,
-                         .marketTypeCode = strMarketTypeCode,
-                         .betName = strBetName,
-                         .price = dblPrice
-                        }
+                    If CheckValidCourse(strMeeting) Then
 
-                    ' Add to list
-                    eventList.Add(newEvent)
+                        newEvent = New BookmakerHorsesEventClass With {
+                             .bookmakerName = strBookMakerName,
+                             .meeting = strMeeting,
+                             .race = strRace,
+                             .eventTimestamp = tsEventTimestamp,
+                             .marketTypeCode = strMarketTypeCode,
+                             .betName = strBetName,
+                             .price = dblPrice
+                            }
+
+                        ' Add to list
+                        eventList.Add(newEvent)
+
+                    End If
 
                     ' Reset flags
                     blnFoundBet = False
 
                 End If
+
             Loop
 
         Catch ex As Exception
@@ -628,6 +637,17 @@ Public Class BookmakerHorsesDbClass
         msg += "Deleted rows : " + num_del.ToString + " Inserted rows : " + num.ToString
         Return msg
 
+    End Function
+    Public Function CheckValidCourse(courseName As String) As Boolean
+        Dim blnReturn As Boolean
+        Dim strCourseListUk As String = "Aintree,Ascot,Ayr,Bangor-On-Dee,Bath,Beverley,Brighton,Carlisle,Cartmel,Catterick,Chelmsford City,Cheltenham,Chepstow,Chester,Doncaster,Epsom Downs,Exeter,Fakenham,Ffos Las, Fontwell,Goodwood,Hamilton,Haydock,Hexham,Huntingdon,Kelso,Kempton,Leicester,Lingfield,Ludlow,Market Rasen,Musselburgh,Newbury,Newcastle,Newmarket,Newton Abbot,Nottingham,Perth,Plumpton,Pontefract,Redcar,Ripon,Salisbury,Sandown,Sedgefield,Southwell,Stratford,Taunton,Thirsk,Towcester,Uttoxeter,Warwick,Wetherby,Wincanton,Windsor,Wolverhampton,Worcester,Yarmouth,York"
+        Dim strCourseListEire As String = "Ballinrobe,Bellewstown,Clonmel,Cork,Curragh,Dundalk,Fairyhouse,Galway,Gowran Park,Kilbeggan,Killarney,Laytown,Leopardstown,Limerick,Listowel,Naas,Navan,Punchestown,Roscommon,Sligo,Thurles,Tipperary,Tralee,Tramore,Wexford"
+        If strCourseListUk.IndexOf(courseName) >= 0 Or strCourseListEire.IndexOf(courseName) >= 0 Then
+            blnReturn = True
+        Else
+            blnReturn = False
+        End If
+        Return blnReturn
     End Function
 
 End Class
